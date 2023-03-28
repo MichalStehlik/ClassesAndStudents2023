@@ -7,6 +7,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ClassesAndStudents2023.Data;
 using ClassesAndStudents2023.Models;
+using Azure;
+using Microsoft.AspNetCore.JsonPatch;
 
 namespace ClassesAndStudents2023.Controllers
 {
@@ -140,6 +142,42 @@ namespace ClassesAndStudents2023.Controllers
             await _context.SaveChangesAsync();
 
             return NoContent();
+        }
+
+
+/*
+        [
+    {
+      "operationType": 1,
+      "path": "type",
+      "op": "replace",
+      "from": "1",
+      "value": "2"
+    }
+]
+*/
+        // https://learn.microsoft.com/en-us/aspnet/core/web-api/jsonpatch?view=aspnetcore-7.0
+        [HttpPatch("{id}")]
+        public async Task<IActionResult> JsonPatchWithModelState(
+            int id, 
+            [FromBody] JsonPatchDocument<Student> patchDoc)
+        {
+            var student = await _context.Students.FindAsync(id);
+            if (patchDoc != null)
+            {
+                patchDoc.ApplyTo(student, ModelState);
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest("Invalid state: " + ModelState);
+                }
+                _context.Entry(student).State = EntityState.Modified;
+                await _context.SaveChangesAsync();
+                return Ok(student);
+            }
+            else
+            {
+                return BadRequest("Patch data are missing");
+            }
         }
 
         private bool StudentExists(int id)
