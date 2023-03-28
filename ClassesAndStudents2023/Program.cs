@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Serilog;
 using Newtonsoft.Json;
 using Microsoft.AspNetCore.Mvc.Formatters;
+using ClassesAndStudents2023.Helpers;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,6 +25,10 @@ builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseSqlSer
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddControllers(options =>
+{
+    options.InputFormatters.Insert(0, JsonPatchInputFormater.GetJsonPatchInputFormatter());
+});
 
 var app = builder.Build();
 
@@ -36,7 +41,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-app.UseAuthorization();
+//app.UseAuthorization();
 
 app.MapControllers();
 
