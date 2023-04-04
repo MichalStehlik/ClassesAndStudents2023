@@ -136,6 +136,34 @@ namespace ClassesAndStudents2023.Controllers
 
             return Ok();
         }
+        
+        [HttpDelete("{id}/students/{studentId}")]
+        public async Task<IActionResult> DeleteClassroomStudent(int id, int studentId)
+        {
+            if (_context.Classrooms == null)
+            {
+                return NotFound();
+            }
+            var classroom = await _context.Classrooms.FindAsync(id);
+            if (classroom == null)
+            {
+                return NotFound("class not found");
+            }
+            var student = await _context.Students.FindAsync(studentId);
+            if (student == null)
+            {
+                return NotFound("student not found");
+            }
+            await _context.Entry(classroom).Collection(g => g.Students).LoadAsync();
+            if (classroom.Students.All(c => c.StudentId != studentId))
+            {
+                return NotFound("student is not in this class");
+            }
+            game.Students.Remove(student);
+            await _context.SaveChangesAsync();
+
+            return NoContent();
+        }
 
         private bool ClassroomExists(int id)
         {
